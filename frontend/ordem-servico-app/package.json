@@ -1,0 +1,38 @@
+{
+  "name": "ordem-servico-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@types/node": "^22.13.10",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
+    "@vuepic/vue-datepicker": "^11.0.1",
+    "axios": "^1.8.3",
+    "chart.js": "^4.4.8",
+    "html2pdf.js": "^0.10.3",
+    "maska": "^3.1.0",
+    "mitt": "^3.0.1",
+    "path": "^0.12.7",
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.0.13",
+    "vuetify": "^3.7.16",
+    "vuex": "^4.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0",
+    "vite-plugin-vuetify": "^2.1.0",
+    "vue-tsc": "^2.2.4"
+  }
+}
