@@ -1,39 +1,45 @@
 import axios from 'axios';
-import router from '../router';
-import { getToken } from '../utils/auth';
+import router from '@/router';
 
-const Api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-    headers: {
-        'Content-Type': 'application/json',
-    }
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
-// Interceptor para adicionar o token em todas as requisições
-Api.interceptors.request.use(
-    (config) => {
-        const token = getToken();
-        if (token) {
-            config.headers.Authorization = `Token ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+// Interceptor para requisições
+api.interceptors.request.use(
+  (config) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user?.token) {
+      config.headers.Authorization = `Token ${user.token}`;
     }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Interceptor para tratar erros de resposta
-Api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            router.push('/login');
-            return Promise.reject(new Error('Sessão expirada. Por favor, faça login novamente.'));
-        }
-        return Promise.reject(error);
+// Interceptor para respostas
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Limpar dados do usuário
+      localStorage.removeItem('user');
+      
+      // Redirecionar para login mantendo a URL original como redirect
+      const currentPath = router.currentRoute.value.fullPath;
+      router.push({
+        name: 'Login',
+        query: { redirect: currentPath }
+      });
     }
+
+    return Promise.reject(error);
+  }
 );
 
-export default Api;
+export default api;
