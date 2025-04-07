@@ -78,7 +78,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 ## Uso
 
-1. Acesse o sistema em `http://localhost:8080`
+1. Acesse o sistema em `http://localhost:8000`
 2. Faça login com suas credenciais
 3. Navegue pelo menu para acessar as funcionalidades
 
