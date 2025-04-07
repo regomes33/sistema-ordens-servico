@@ -68,7 +68,7 @@ export default {
   actions: {
     async login({ commit }, credentials) {
       try {
-        const response = await api.post('/api-token-auth/', credentials)
+        const response = await api.post('api-token-auth/', credentials)
         const { token } = response.data
         
         const userData = {

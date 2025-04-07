@@ -25,13 +25,14 @@ class TipoServico(models.Model):
 
 class OrdemServico(models.Model):
     STATUS_CHOICES = [
-        ('orcamento', 'ORÇAMENTO'),
-        ('aprovado', 'APROVADO'),
-        ('pendente', 'PENDENTE'),
-        ('em andamento', 'EM ANDAMENTO'),
-        ('concluido', 'CONCLUIDO'),
-        ('cancelado', 'CANCELADO'),
+        ('ORCAMENTO', 'Orçamento'),      # <- MUDOU
+        ('APROVADO', 'Aprovado'),       # <- MUDOU
+        ('PENDENTE', 'Pendente'),       # <- MUDOU
+        ('EM_ANDAMENTO', 'Em Andamento'), # <- MUDOU (valor e texto)
+        ('CONCLUIDO', 'Concluído'),     # <- MUDOU (valor e texto)
+        ('CANCELADO', 'Cancelado'),     # <- MUDOU
     ]
+    
     
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     tipo_servico = models.ManyToManyField(TipoServico)
@@ -42,7 +43,7 @@ class OrdemServico(models.Model):
     valor_mao_obra = models.DecimalField(max_digits=10, decimal_places=2)
     valor_material = models.DecimalField(max_digits=10, decimal_places=2)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
     endereco = models.TextField()
     criado_por = models.ForeignKey(User, on_delete=models.CASCADE)
     

@@ -146,16 +146,56 @@ export default {
       }
     },
     
-    async updateOrdemServico({ commit, dispatch }, { id, data }) {
+    async updateOrdemServico({ commit }, { id, data }) {
+      commit('SET_LOADING', true);
       try {
-        const response = await ordemServicoService.atualizar(id, data);
-        await dispatch('fetchOrdensServico');
+        console.log('Verificando ordemServicoService ANTES da chamada:', ordemServicoService);
+        console.log('Existe a função atualizar?', typeof ordemServicoService.atualizar);
+        // Mude de 'update' para 'atualizar' para corresponder ao serviço
+        const response = await ordemServicoService.atualizar(id, data); // <--- CORREÇÃO AQUI
+    
+        // Você tem uma mutation 'UPDATE_ORDEM_SERVICO_IN_LIST' aqui?
+        // Se a mutation correta for 'UPDATE_ORDEM_SERVICO', use-a:
+        commit('UPDATE_ORDEM_SERVICO', response.data); // Verifique o nome da mutation
+    
+        commit('SET_LOADING', false);
         return response.data;
       } catch (error) {
-        commit('SET_ERROR', error.message);
+        commit('SET_LOADING', false);
+        commit('SET_ERROR', error); // Idealmente, pegue error.response.data ou error.message
+        console.error('Erro ao atualizar ordem de serviço:', error);
         throw error;
       }
     },
+
+    async updateStatus({ commit, dispatch }, { id, status }) {
+      commit('SET_LOADING', true); // Opcional: indicar loading
+      try {
+        // Chama a função correta do service com PATCH
+        const response = await ordemServicoService.updateStatus(id, status);
+
+        // Atualiza o estado local.
+        // Opção A: Se a API PATCH retorna o objeto completo atualizado:
+        commit('UPDATE_ORDEM_SERVICO', response.data);
+
+        // Opção B: Se a API PATCH retorna só sucesso (200 OK) ou dados parciais:
+        // Você pode buscar o item atualizado OU comitar uma mutation mais específica
+        // Ex: commit('UPDATE_ORDEM_STATUS_MUTATION', { id, status }); // Precisaria criar essa mutation
+        // Ou recarregar a lista/item (menos eficiente se for só status)
+        // dispatch('fetchOrdemServico', id); // Recarrega o item atual
+
+        return response.data; // Retorna os dados atualizados (se houver)
+      } catch (error) {
+        console.error(`Erro ao atualizar status da OS ${id}:`, error);
+        commit('SET_ERROR', error.response?.data || 'Erro ao atualizar status');
+        throw error; // Propaga o erro
+      } finally {
+        commit('SET_LOADING', false); // Garante que loading termine
+      }
+    },
+
+    // ... (resto das actions) ...
+
     
     async deleteOrdemServico({ commit }, id) {
       commit('SET_LOADING', true);

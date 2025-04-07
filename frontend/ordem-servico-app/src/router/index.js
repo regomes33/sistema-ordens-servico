@@ -12,7 +12,8 @@ import store from '../store'
 const ClientesView = () => import('../views/ClientesView.vue')
 const TiposServicoView = () => import('../views/TiposServicoView.vue')
 const RelatorioView = () => import('../views/RelatorioView.vue')
-
+const RelatorioClientesView= () =>import('../views/RelatorioClientesView.vue')
+const RelatorioOrdensView= () => import('../views/RelatorioOrdensView.vue')
 const requireAuth = (to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'));
   
@@ -111,7 +112,26 @@ const routes = [
       title: 'Relatórios',
       requiresAuth: true
     }
-  }
+  },
+  {
+    path: '/relatorios/ordens',
+    name: 'relatorioOrdens',
+    component: RelatorioOrdensView,
+    meta: {
+      title: 'Relatórios Ordens',
+      requiresAuth: true
+    }
+    // meta: { requiresAuth: true } // Se precisar de autenticação
+  },
+  {
+    path: '/relatorios/clientes',
+    name: 'relatorioClientes',
+    component: RelatorioClientesView,
+    meta: {
+      title: 'Relatórios Clientes',
+      requiresAuth: true
+    }
+  },
 ]
 
 const router = createRouter({

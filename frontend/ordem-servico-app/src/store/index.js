@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import auth from '../utils/auth';
+import auth from '../utils/auth'; // <-- Caminho incomum para um módulo Vuex
 import cliente from './modules/cliente';
 import tipoServico from './modules/tipoServico';
 import ordemServico from './modules/ordemServico';

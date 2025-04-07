@@ -1,173 +1,122 @@
 <template>
-  <div> <!-- Não precisa de v-container ou v-card aqui, pois já está dentro de um em RelatorioView -->
-    <!-- Cards de Resumo - Usam a prop 'resumo' -->
-    <v-row class="mt-4 px-4"> <!-- Adiciona padding -->
-      <v-col cols="12" sm="4">
-        <v-card elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-overline">Total de Ordens</div>
-            <div class="text-h4 font-weight-bold">{{ resumoCalculado.total_ordens }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-card elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-overline">Valor Total</div>
-            <div class="text-h4 font-weight-bold"> {{ formatarMoeda(resumoCalculado.valor_total) }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-card elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-overline">Média por Ordem</div>
-            <div class="text-h4 font-weight-bold"> {{ formatarMoeda(resumoCalculado.media_valor) }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+  <div>
+    <!-- Cards de Resumo (como antes) -->
+    <v-row class="mt-4 px-4"> ... </v-row>
 
-    <!-- Indicador de Loading ou Tabela -->
-     <div v-if="loading" class="text-center pa-8">
-        <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        <p class="mt-2">Carregando dados...</p>
-      </div>
-       <div v-else-if="!ordensFiltradas.length && !loading" class="text-center pa-8 grey--text">
-         Nenhuma ordem encontrada com os filtros selecionados.
-       </div>
-      <v-table v-else class="mt-4 elevation-1">
-        <thead>
-          <tr>
-            <th class="text-left">ID</th>
-            <th class="text-left">Cliente</th>
-            <th class="text-left">Tipo Serviço</th>
-            <th class="text-left">Data Criação</th>
-            <th class="text-right">Valor</th>
-            <th class="text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Itera sobre ordens filtradas pela busca -->
-          <tr v-for="ordem in ordensFiltradas" :key="ordem.id">
-            <td>{{ ordem.id }}</td>
-            <td>{{ ordem.cliente_nome }}</td>
-            <td>{{ ordem.tipo_servico_nome }}</td>
-            <td>{{ formatarData(ordem.data_criacao) }}</td>
-            <td class="text-right">R$ {{ formatarMoeda(ordem.valor_total) }}</td>
-            <td>
-                <v-chip :color="getStatusColor(ordem.status_display)" small label>
-                    {{ ordem.status_display }}
-                </v-chip>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+    <!-- Tabela com v-data-table-server -->
+    <v-data-table-server v-model:items-per-page="localItemsPerPage" :headers="headers" :items="ordens"
+      :items-length="totalItems" :loading="loading" :search="search" class="elevation-1 mt-4" item-value="id"
+      @update:options="handleOptionsUpdate">
+      <!-- Template para Status com v-chip -->
+      <template v-slot:item.status_display="{ value }">
+        <v-chip :color="getStatusColor(value)" small label>
+          {{ value }}
+        </v-chip>
+      </template>
+      <!-- Template para Valor formatado -->
+      <template v-slot:item.valor_total="{ value }">{{ formatarMoeda(value) }}</template>
+      <!-- Template para Data formatada -->
+      <template v-slot:item.data_criacao="{ value }">
+        {{ formatarData(value) }}
+      </template>
 
+      <!-- Mensagem de 'nenhum dado' -->
+      <template v-slot:no-data>
+        <div class="text-center pa-4 grey--text">
+          Nenhuma ordem encontrada com os filtros selecionados.
+        </div>
+      </template>
+      <!-- Loading -->
+      <template v-slot:loading>
+        <div class="text-center pa-8">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <p class="mt-2">Carregando dados...</p>
+        </div>
+      </template>
+
+    </v-data-table-server>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'RelatorioOrdensServico', // Nome corrigido
+  name: 'RelatorioOrdensServico',
   props: {
-    // Recebe a lista de ordens do componente pai (vindo do store)
-    ordens: {
-      type: Array,
-      required: true,
-      default: () => []
-    },
-    // Recebe o objeto de resumo do componente pai (vindo do store)
-    resumo: {
-      type: Object,
-      required: true,
-      default: () => ({})
-    },
-    // Recebe o estado de loading do pai (vindo do store)
-    loading: {
-      type: Boolean,
-      default: false
-    },
-     // Recebe o termo de busca do pai
-    search: {
-      type: String,
-      default: ''
+    ordens: { type: Array, required: true, default: () => [] },
+    resumo: { type: Object, required: true, default: () => ({}) },
+    loading: { type: Boolean, default: false },
+    search: { type: String, default: '' },
+    totalItems: { type: Number, default: 0 }, // Recebe total do pai
+    itemsPerPage: { type: Number, default: 15 }, // Recebe do pai
+    currentPage: { type: Number, default: 1 }, // Recebe do pai
+    currentSort: { type: String, default: 'data_criacao' } // Recebe do pai
+  },
+  mounted() {
+    console.log('RelatorioOrdensServico MOUNTED - Prop ordens:', JSON.stringify(this.ordens));
+    console.log('RelatorioOrdensServico MOUNTED - Comprimento:', Array.isArray(this.ordens) ? this.ordens.length : 'N/A');
+  },
+  updated() {
+    console.log('RelatorioOrdensServico UPDATED - Prop ordens:', JSON.stringify(this.ordens));
+    console.log('RelatorioOrdensServico UPDATED - Comprimento:', Array.isArray(this.ordens) ? this.ordens.length : 'N/A');
+  },
+  data() {
+    return {
+      // Cabeçalhos para v-data-table-server
+      headers: [
+        { title: 'ID', key: 'id', align: 'start', sortable: true },
+        { title: 'Cliente', key: 'cliente_nome', align: 'start', sortable: true },
+        { title: 'Tipo Serviço', key: 'tipo_servico_nome', align: 'start', sortable: true },
+        { title: 'Data Criação', key: 'data_criacao', align: 'start', sortable: true },
+        { title: 'Valor', key: 'valor_total', align: 'end', sortable: true },
+        { title: 'Status', key: 'status_display', align: 'start', sortable: false }, // Status pode não ser ordenável
+      ],
+      // Cópia local para v-model de items-per-page
+      localItemsPerPage: this.itemsPerPage,
+    }
+  },
+
+  watch: {
+    // Atualiza cópia local se prop do pai mudar
+    itemsPerPage(newVal) {
+      this.localItemsPerPage = newVal;
     }
   },
   computed: {
-    // Filtra as ordens recebidas com base no termo de busca (prop 'search')
-    ordensFiltradas() {
-      if (!this.search) {
-        return this.ordens; // Retorna tudo se não houver busca
-      }
-      const searchTerm = this.search.toLowerCase();
-      return this.ordens.filter(ordem => {
-        // Busca em campos relevantes (ID, nome cliente, tipo, status)
-        return (
-          String(ordem.id).includes(searchTerm) ||
-          ordem.cliente_nome?.toLowerCase().includes(searchTerm) ||
-          ordem.tipo_servico_nome?.toLowerCase().includes(searchTerm) ||
-          ordem.status_display?.toLowerCase().includes(searchTerm)
-        );
-      });
-    },
-     // Um computed para garantir que o resumo tenha valores padrão se vier vazio
-     resumoCalculado() {
-        return {
-            total_ordens: this.resumo?.total_ordens || 0,
-            valor_total: this.resumo?.valor_total || 0,
-            media_valor: this.resumo?.media_valor || 0,
-            // Adicione outros campos do resumo se necessário
-        };
-     }
+    resumoCalculado() { /* ... como antes ... */ }
   },
   methods: {
-    // Métodos de formatação permanecem aqui, pois são lógicos de apresentação
-    formatarData(dataIsoString) {
-      if (!dataIsoString) return 'N/A';
-      try {
-        // Assume que data_criacao é uma string ISO 8601 (ex: "2023-10-27T10:00:00Z")
-        const data = new Date(dataIsoString);
-        // Verifica se a data é válida
-        if (isNaN(data.getTime())) return 'Data inválida';
-        return data.toLocaleDateString('pt-BR', {
-          day: '2-digit', month: '2-digit', year: 'numeric' // Formato DD/MM/YYYY
-        });
-      } catch (e) {
-        console.error("Erro ao formatar data:", dataIsoString, e);
-        return 'Erro data';
+    formatarData(dataIsoString) { /* ... como antes ... */ },
+    formatarMoeda(valor) { /* ... como antes ... */ },
+    getStatusColor(status) { /* ... como antes ... */ },
+
+    // Método chamado pelo @update:options da v-data-table-server
+    handleOptionsUpdate({ page, itemsPerPage, sortBy }) {
+      console.log("Opções atualizadas:", { page, itemsPerPage, sortBy });
+
+      // Emitir evento para mudança de itens por página
+      if (itemsPerPage !== this.itemsPerPage) {
+        this.$emit('update:items-per-page', itemsPerPage);
       }
-    },
-    formatarMoeda(valor) {
-      const numero = parseFloat(valor);
-      if (isNaN(numero)) return '0,00';
-      return numero.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL' // Usa o formato de moeda BRL
-      });
-    },
-     // Função para definir cor do chip de status (exemplo)
-     getStatusColor(status) {
-        const lowerStatus = status?.toLowerCase() || '';
-        if (lowerStatus.includes('concluído')) return 'success';
-        if (lowerStatus.includes('em andamento')) return 'info';
-        if (lowerStatus.includes('aprovado')) return 'warning';
-        if (lowerStatus.includes('pendente')) return 'error';
-        if (lowerStatus.includes('cancelado')) return 'error';
-        if (lowerStatus.includes('orçamento')) return 'warning';
-        return 'grey'; // Cor padrão
-     }
+
+      // Emitir evento para mudança de página
+      if (page !== this.currentPage) {
+        this.$emit('mudar-pagina', page);
+      }
+
+      // Emitir evento para ordenação
+      // sortBy é um array [{ key: 'nome', order: 'asc'|'desc' }]
+      const sortItem = sortBy.length ? sortBy[0] : null;
+      // Constrói string de ordenação como antes (ou como a API esperar)
+      const novaOrdenacao = sortItem ? `${sortItem.order === 'desc' ? '-' : ''}${sortItem.key}` : 'data_criacao'; // Default sort
+      if (novaOrdenacao !== this.currentSort) {
+        // Emite o objeto sortBy[0] ou a string formatada, dependendo do que o pai espera
+        this.$emit('ordenar', sortItem || { key: 'data_criacao', order: 'asc' });
+      }
+    }
   }
-  // REMOVIDO: data(), created(), gerarRelatorio(), computed antigos baseados em store local
 }
 </script>
 
 <style scoped>
-/* Estilos específicos para a tabela ou cards de resumo, se necessário */
-.v-table th {
-    font-weight: bold;
-}
-.text-overline {
-    color: grey;
-}
+/* Estilos específicos */
 </style>

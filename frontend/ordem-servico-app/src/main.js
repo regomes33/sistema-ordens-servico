@@ -2,41 +2,24 @@ import axios from 'axios';
 import store from './store';
 import router from './router';
 
-// Configurar Axios para interceptar respostas
+// Configurar UM interceptor Axios para respostas
 axios.interceptors.response.use(
-  response => response,
+  response => response, // Handler de sucesso (passa direto)
   error => {
+    // Handler de erro
     if (error.response && error.response.status === 401) {
-      console.log('Interceptor Axios: Token inválido ou expirado');
-      
-      // Realizar logout
-      store.dispatch('auth/logout');
-      
-      // Redirecionar para login
+      console.log('Interceptor Axios: Token inválido, expirado ou sessão inválida. Redirecionando...'); // Mensagem unificada
+
+      // Só despacha e redireciona se não estiver já em /login
+      // (ou se o estado de autenticação ainda for true, dependendo da sua lógica)
       if (router.currentRoute.value.path !== '/login') {
+        // Realizar logout (apenas uma vez)
+        store.dispatch('auth/logout');
+        // Redirecionar para login (apenas uma vez)
         router.push('/login');
       }
     }
+    // Garante que outros erros sejam propagados
     return Promise.reject(error);
   }
 );
-
-// Configurar interceptor global para o Axios
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      console.log('Sessão expirada ou inválida. Redirecionando para login...');
-      // Limpar estado de autenticação
-      store.dispatch('auth/logout');
-      // Redirecionar para a página de login
-      router.push('/login');
-      
-      // Exibir mensagem para o usuário (opcional)
-      // Você pode emitir um evento global aqui ou usar uma biblioteca de notificações
-    }
-    return Promise.reject(error);
-  }
-); 

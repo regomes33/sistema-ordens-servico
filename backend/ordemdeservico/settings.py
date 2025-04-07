@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+     'django_filters',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -153,7 +154,29 @@ SIMPLE_JWT = {
 
     'JTI_CLAIM': 'jti',
 }
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False, # Importante para não desabilitar loggers padrão
+    'handlers': {
+        'console': {
+            'level': 'DEBUG', # << GARANTA QUE ESTEJA DEBUG
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        # Logger raiz - pega tudo
+        '': {
+            'handlers': ['console'],
+            'level': 'DEBUG', # << GARANTA QUE ESTEJA DEBUG
+        },
+        # Ou especificamente para seu app (se 'servico' for o nome do app)
+        'servico': {
+             'handlers': ['console'],
+             'level': 'DEBUG',
+             'propagate': False, # Evita duplicar msg no logger raiz
+         },
+    },
+}
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

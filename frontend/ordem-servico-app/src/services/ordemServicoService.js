@@ -1,6 +1,6 @@
 import api from './api'
 
-const BASE_URL = '/api/ordens-servico/'
+const BASE_URL = '/ordens-servico/'
 
 export default {
   listar() {
@@ -27,7 +27,7 @@ export default {
     return api.post(BASE_URL, data)
   },
 
-  atualizar(id, data) {
+  update(id, data) {
     return api.put(`${BASE_URL}${id}/`, data)
   },
 

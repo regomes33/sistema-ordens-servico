@@ -74,20 +74,36 @@
           </v-row>
         </v-card-text>
 
-        <!-- Conteúdo das Abas -->
-        <v-window v-model="activeTab">
+       <!-- Conteúdo das Abas -->
+       <v-window v-model="activeTab">
           <!-- Aba Ordens de Serviço -->
           <v-window-item :value="0">
-            <!-- Passa os dados e resumo do store via props -->
-            <relatorio-ordens-servico :ordens="getDadosOrdens" :resumo="getResumoOrdens" :loading="isLoading"
-              :search="search"></relatorio-ordens-servico>
+            <relatorio-ordens-servico
+              
+              :ordens="dadosRelatorioAtual"
+              :resumo="resumoRelatorioAtual"
+              :loading="isLoading"
+              :search="search"
+              :current-page="filtros.pagina_ordens"
+              :current-sort="filtros.ordenacao_ordens"
+              :items-per-page="itemsPerPage"
+              @ordenar="handleOrdenarOrdens"
+              @mudar-pagina="handleMudarPaginaOrdens"
+            />
           </v-window-item>
 
           <!-- Aba Clientes -->
           <v-window-item :value="1">
-            <!-- Assumindo que você tenha um RelatorioClientes.vue -->
-            <!-- Ele receberia getDadosClientes e getResumoClientes do store -->
-            <relatorio-clientes :clientes="getDadosOrdens" />
+            <relatorio-clientes
+              
+              :clientes="dadosRelatorioAtual"  
+              :loading="isLoading"
+              :current-page="filtros.pagina_clientes"
+              :current-sort="filtros.ordenacao_clientes"
+              :items-per-page="itemsPerPage"
+              @ordenar="handleOrdenarClientes"
+              @mudar-pagina="handleMudarPaginaClientes"
+            />
           </v-window-item>
         </v-window>
 
@@ -106,6 +122,7 @@ import { mapGetters, mapActions, mapMutations } from 'vuex';
 // Importe os componentes filhos
 import RelatorioOrdensServico from '@/components/Relatorio/RelatorioOrdensServico.vue';
 import RelatorioClientes from '@/components/Relatorio/RelatorioClientes.vue'; // Crie este se não existir
+import { debounce } from 'lodash-es'; // Importa a função debounce
 
 export default {
   name: 'RelatorioView',
@@ -124,6 +141,10 @@ export default {
         status: [], // Array para v-select multiple
         tipo_servico: [], // Array para v-select multiple
         cliente: [], // Array para v-autocomplete multiple
+        pagina_ordens: 1,
+        ordenacao_ordens: 'data_criacao',
+        pagina_clientes: 1,
+        ordenacao_clientes: 'nome',
       },
       // Opções para o select de status (igual ao backend)
       statusOptions: [
@@ -141,13 +162,15 @@ export default {
   },
   computed: {
     // Mapeia getters do módulo 'relatorio'
-    ...mapGetters('relatorio', [
-      'isLoading',
-      'hasError',
-      'getErrorMessage',
-      'getDadosOrdens',   // Dados da lista (usado por Ordens e talvez Clientes)
-      'getResumoOrdens',  // Resumo (usado por Ordens e talvez Clientes)
-    ]),
+    ...mapGetters('relatorio', {
+       // Mantém os nomes originais se não precisar de alias
+       isLoading: 'isLoading',
+       hasError: 'hasError',
+       getErrorMessage: 'getErrorMessage',
+       // Cria aliases que leem os getters originais (que leem o state compartilhado)
+       dadosRelatorioAtual: 'getDadosOrdens',   // dadosRelatorioAtual LÊ state.dadosRelatorio via getDadosOrdens
+       resumoRelatorioAtual: 'getResumoOrdens'  // resumoRelatorioAtual LÊ state.resumoRelatorio via getResumoOrdens
+    }),
     // Mapeia getters de outros módulos para os selects
     ...mapGetters('tipoServico', ['getTiposServico']),
     ...mapGetters('cliente', ['clientes']), // Assuming 'clientes' getter exists
@@ -164,14 +187,23 @@ export default {
 
     // Parâmetros formatados para enviar à API (via action)
     apiParams() {
-      return {
+      const params = {
         data_inicio: this.filtros.data_inicio,
         data_fim: this.filtros.data_fim,
-        // Junta arrays em string separada por vírgula, se não estiverem vazios
-        status: this.filtros.status?.length ? this.filtros.status.join(',') : null,
-        tipo_servico: this.filtros.tipo_servico?.length ? this.filtros.tipo_servico.join(',') : null,
-        cliente: this.filtros.cliente?.length ? this.filtros.cliente.join(',') : null,
+        ordenacao: this.activeTab === 0 ? this.filtros.ordenacao_ordens : this.filtros.ordenacao_clientes,
+        pagina: this.activeTab === 0 ? this.filtros.pagina_ordens : this.filtros.pagina_clientes,
+        itens_por_pagina: this.itemsPerPage,
       };
+      if (this.activeTab === 0) {
+         params.status = this.filtros.status?.length ? this.filtros.status.join(',') : null;
+         params.tipo_servico = this.filtros.tipo_servico?.length ? this.filtros.tipo_servico.join(',') : null;
+         params.cliente = this.filtros.cliente?.length ? this.filtros.cliente.join(',') : null;
+      } else {
+          params.cliente = this.filtros.cliente?.length ? this.filtros.cliente.join(',') : null;
+      }
+      // Remover chaves nulas ou vazias antes de retornar
+      Object.keys(params).forEach(key => (params[key] == null || params[key] === '') && delete params[key]);
+      return params;
     },
   },
   methods: {
@@ -255,19 +287,56 @@ export default {
     }
   },
   watch: {
-    // Limpa dados e busca relatório ao trocar de aba
+    // Observa o objeto COMPUTADO apiParams
+    apiParams: {
+      handler(newParams, oldParams) {
+        // Compara os parâmetros relevantes para evitar re-fetch desnecessário na carga inicial
+        // ou se apenas a paginação/ordenação mudou (já tratado pelos handlers)
+        // Uma comparação simples pode ser suficiente se o debounce for eficaz
+         if (JSON.stringify(newParams) !== JSON.stringify(oldParams)) {
+            console.log('[RelatorioView] apiParams mudou, chamando debouncedGerarRelatorio...');
+            // Resetar a página para 1 se filtros PRINCIPAIS mudaram
+             if (newParams.data_inicio !== oldParams?.data_inicio ||
+                 newParams.data_fim !== oldParams?.data_fim ||
+                 newParams.status !== oldParams?.status ||
+                 newParams.tipo_servico !== oldParams?.tipo_servico ||
+                 newParams.cliente !== oldParams?.cliente)
+             {
+                 if (this.activeTab === 0) this.filtros.pagina_ordens = 1;
+                 else this.filtros.pagina_clientes = 1;
+                 console.log('[RelatorioView] Filtros principais mudaram, resetando página.');
+             }
+            this.debouncedGerarRelatorio();
+         }
+      },
+      // deep: true // Não é estritamente necessário para computed, mas seguro
+    },
+    // Watch na aba continua como antes
     async activeTab(newTab, oldTab) {
-      if (newTab !== oldTab) {
-        this.search = ''; // Limpa busca da tabela
-        // this.limparDadosRelatorio(); // Action do store para limpar dados
-        await this.gerarRelatorio(); // Gera relatório para a nova aba
-      }
-    }
+       if (newTab !== oldTab) {
+         this.search = '';
+         // Não precisa chamar gerarRelatorio aqui, a mudança nos apiParams (página/ordenação)
+         // já vai disparar o watch de apiParams.
+         // Resetar a página da aba nova é importante
+          if (newTab === 0) this.filtros.pagina_ordens = 1;
+          else this.filtros.pagina_clientes = 1;
+          // A mudança de página/aba vai alterar apiParams -> dispara watch -> dispara debounce
+       }
+     }
   },
   // Carrega dados dos filtros e relatório inicial ao criar o componente
   created() {
+    // Cria a função debounced UMA VEZ
+    this.debouncedGerarRelatorio = debounce(this.gerarRelatorio, 750); // Atraso de 750ms (ajuste conforme necessário)
     this.loadInitialData();
   },
+  // Limpa o debounce quando o componente é destruído
+  beforeUnmount() {
+    if (this.debouncedGerarRelatorio) {
+      this.debouncedGerarRelatorio.cancel();
+    }
+  }
+
 };
 </script>
 

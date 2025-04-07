@@ -49,7 +49,7 @@
         <router-view />
       </v-container>
     </v-main>
-
+    
     <!-- Mensagens do sistema -->
     <v-snackbar
       v-model="snackbar.show"
@@ -106,7 +106,8 @@ export default defineComponent({
       { title: 'Tipos de Serviço', icon: 'mdi-wrench', to: '/tipos-servico', value: 'tipos-servico' },
       { title: 'Ordens de Serviço', icon: 'mdi-clipboard-list', to: '/ordens-servico', value: 'ordens-servico' },
       { title: 'Nova Ordem', icon: 'mdi-plus-circle', to: '/ordem-servico/nova', value: 'nova-ordem' },
-      { title: 'Relatórios', icon: 'mdi-chart-bar', to: '/relatorios', value: 'relatorios' }
+      { title: 'Relatórios Ordens', icon: 'mdi-chart-bar', to: '/relatorios/ordens', value: 'relatorios/ordens' },
+      { title: 'Relatórios Clientes', icon: 'mdi-chart-bar', to: '/relatorios/clientes', value: 'relatorios/clientes' },
     ]
 
     const isAuthenticated = computed(() => {

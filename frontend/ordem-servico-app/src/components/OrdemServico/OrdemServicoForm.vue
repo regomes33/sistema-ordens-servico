@@ -473,6 +473,16 @@
               data: formData
             });
             this.showSnackbar('Ordem de serviço atualizada com sucesso', 'success');
+            await this.fetchOrdemServico(this.id).then(ordem => {
+         if (ordem) {
+           // Atualiza o objeto local com os dados frescos da API
+           this.ordemServico = {
+             ...ordem,
+             cliente: ordem.cliente.toString(), // Ajuste conforme necessário
+             tipo_servico: ordem.tipo_servico.map(t => t.toString()) // Ajuste conforme necessário
+           };
+         }
+      });
           } else {
             const result = await this.createOrdemServico(formData);
             if (result && result.id) {
@@ -510,7 +520,7 @@
         
         // Status - use exatamente os valores definidos no modelo
         // Corrigir o valor do status para corresponder exatamente ao modelo
-        const statusMap = {
+       /*  const statusMap = {
           'orcamento': 'pendente',        // Mapear 'orcamento' para 'pendente'
           'aprovado': 'pendente',         // Mapear 'aprovado' para 'pendente'
           'em_andamento': 'em andamento', // Corrigir para formato exato do backend
@@ -520,19 +530,19 @@
         
         // Usar o valor mapeado ou o original se não houver mapeamento
         const statusValue = statusMap[this.ordemServico.status] || this.ordemServico.status;
-        formData.append('status', statusValue);
+        formData.append('status', statusValue); */
         
         formData.append('endereco', this.ordemServico.endereco);
         
         // O campo criado_por é obrigatório
-        const userId = localStorage.getItem('user_id');
-        if (userId) {
-          formData.append('criado_por', userId);
-        } else {
+        //const userId = localStorage.getItem('user_id');
+        //if (userId) {
+          //formData.append('criado_por', userId);
+        //} else {
           // Se não temos um user_id no localStorage, use o ID do usuário autenticado
           // Por padrão, podemos tentar usar o ID 1 (geralmente o admin)
-          formData.append('criado_por', 1);
-        }
+          //formData.append('criado_por', 1);
+        //}
         
         // Observação: o valor_total é calculado automaticamente no backend
         // através do método save(), então não precisamos enviá-lo

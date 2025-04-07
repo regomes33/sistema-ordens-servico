@@ -1,289 +1,260 @@
 <template>
-    <div class="ordem-servico-lista">
-      <v-card>
-        <v-card-title>
-          Ordens de Serviço
-          <v-spacer></v-spacer>
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Buscar"
-            single-line
-            hide-details
-          ></v-text-field>
-        </v-card-title>
-        
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="filtroStatus"
-                :items="statusOptions"
-                label="Filtrar por Status"
-                clearable
-                @change="aplicarFiltros"
-              ></v-select>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="filtroCliente"
-                :items="clientes"
-                item-text="nome"
-                item-value="id"
-                label="Filtrar por Cliente"
-                clearable
-                @change="aplicarFiltros"
-              ></v-select>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="filtroTipoServico"
-                :items="tiposServico"
-                item-text="nome"
-                item-value="id"
-                label="Filtrar por Tipo de Serviço"
-                clearable
-                @change="aplicarFiltros"
-              ></v-select>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        
-        <v-data-table
-          :headers="headers"
-          :items="ordensServico"
-          :search="search"
-          :loading="loading"
-          :sort-by="sortBy"
-          class="elevation-1"
-        >
-          <template v-slot:top>
-            <v-toolbar flat>
-              <v-spacer></v-spacer>
-              <v-btn color="primary" dark @click="navegarParaNovo">
-                <v-icon left>mdi-plus</v-icon>
-                Nova Ordem de Serviço
-              </v-btn>
-            </v-toolbar>
-          </template>
-          
-          <template v-slot:item.status="{ item }">
-            <v-chip :color="getStatusColor(item.status)" dark>
-              {{ getStatusText(item.status) }}
-            </v-chip>
-          </template>
-          
-          <template v-slot:item.data_criacao="{ item }">
-            {{ formatarData(item.data_criacao) }}
-          </template>
-          
-          <template v-slot:item.data_servico="{ item }">
-            {{ formatarData(item.data_servico) }}
-          </template>
-          
-          <template v-slot:item.valor_total="{ item }">
-            {{ formatarMoeda(item.valor_total) }}
-          </template>
-          
-          <template v-slot:item.cliente="{ item }">
-            {{ getClienteNome(item.cliente) }}
-          </template>
-          
-          <template v-slot:item.actions="{ item }">
-            <v-icon
-              small
-              class="mr-2"
-              @click="visualizarItem(item)"
-            >
+  <div>
+    <v-row class="mb-4">
+      <v-col cols="12">
+         <!-- Campo de busca interno ao componente -->
+        <v-text-field
+          v-model="search"
+          label="Pesquisar Ordens (Cliente, Descrição...)"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          clearable
+          hide-details
+        ></v-text-field>
+      </v-col>
+    </v-row>
+
+    <v-data-table
+      :headers="headers"
+      :items="ordens"          
+      :search="search"          
+      :loading="loading"         
+      :items-per-page="10"     
+      class="elevation-1"
+      item-value="id" 
+      :no-data-text="'Nenhuma ordem de serviço encontrada.'"
+      :loading-text="'Carregando ordens...'"
+    >
+      <!-- Slot para personalizar a exibição do cliente -->
+      <template v-slot:item.cliente="{ item }">
+         <!-- Acessa 'cliente' diretamente do item da prop 'ordens' -->
+         <!-- Usa 'raw' porque v-data-table v3+ envolve o item -->
+         {{ getClienteNome(item.cliente) }}
+      </template>
+
+      <!-- Slot para personalizar a exibição do status com chip colorido -->
+      <template v-slot:item.status="{ item }">
+        <v-chip :color="getStatusColor(item.status)" dark small>
+          {{ formatStatus(item.status) }}
+        </v-chip>
+      </template>
+
+      <!-- Slot para personalizar a exibição da data -->
+       <template v-slot:item.data_servico="{ item }">
+         {{ formatDate(item.data_servico) }}
+       </template>
+
+      <!-- Slot para personalizar a exibição do valor total -->
+       <template v-slot:item.valor_total="{ item }">
+         {{ formatCurrency(item.valor_total) }}
+       </template>
+
+    <!-- Slot para ações (Ver, Editar, Excluir) -->
+    <template v-slot:item.actions="{ item }">
+        <v-tooltip location="top">
+           <template v-slot:activator="{ props }">
+            <!-- Passe 'item' diretamente -->
+            <v-icon v-bind="props" small class="mr-2" @click="verDetalhes(item)" color="primary">
               mdi-eye
             </v-icon>
-            <v-icon
-              small
-              class="mr-2"
-              @click="editarItem(item)"
-            >
+           </template>
+           <span>Ver Detalhes</span>
+        </v-tooltip>
+
+         <v-tooltip location="top">
+           <template v-slot:activator="{ props }">
+             <!-- Passe 'item' diretamente -->
+             <v-icon v-bind="props" small class="mr-2" @click="editarOrdem(item)" color="warning">
               mdi-pencil
             </v-icon>
-            <v-icon
-              small
-              @click="excluirItem(item)"
-            >
+           </template>
+           <span>Editar</span>
+         </v-tooltip>
+
+         <v-tooltip location="top">
+           <template v-slot:activator="{ props }">
+             <!-- Passe 'item' diretamente -->
+             <v-icon v-bind="props" small @click="confirmarExclusao(item)" color="error">
               mdi-delete
             </v-icon>
-          </template>
-        </v-data-table>
+           </template>
+           <span>Excluir</span>
+         </v-tooltip>
+      </template>
+
+    </v-data-table>
+
+    <!-- Diálogo de confirmação para exclusão -->
+    <v-dialog v-model="dialogExcluir" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h5">Confirmar Exclusão</v-card-title>
+        <v-card-text>
+          Tem certeza que deseja excluir a Ordem de Serviço #{{ itemParaExcluir?.id }}
+          <!-- Usa getClienteNome aqui também -->
+          para o cliente {{ getClienteNome(itemParaExcluir?.cliente) }}?
+          Esta ação não pode ser desfeita.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="dialogExcluir = false">Cancelar</v-btn>
+          <v-btn color="error darken-1" text @click="excluirOrdemConfirmada" :loading="loadingExclusao">Excluir</v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
       </v-card>
-      
-      <v-dialog v-model="dialogExclusao" max-width="500px">
-        <v-card>
-          <v-card-title class="text-h5">Confirmar exclusão</v-card-title>
-          <v-card-text>
-            Tem certeza que deseja excluir esta ordem de serviço? Esta ação não pode ser desfeita.
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="fecharExclusao">Cancelar</v-btn>
-            <v-btn color="red darken-1" text @click="confirmarExclusao">Confirmar</v-btn>
-            <v-spacer></v-spacer>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      
-      <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
-        {{ snackbarText }}
-        <template v-slot:action="{ attrs }">
-          <v-btn text v-bind="attrs" @click="snackbar = false">
-            Fechar
-          </v-btn>
-        </template>
-      </v-snackbar>
-    </div>
-  </template>
-  
-  <script>
-  import { mapState, mapActions } from 'vuex';
-  
-  export default {
-    name: 'OrdemServicoLista',
-    data() {
-      return {
-        search: '',
-        headers: [
-          { text: 'Cliente', value: 'cliente_nome' },
-          { text: 'Tipo de Serviço', value: 'tipo_servico_nome' },
-          { text: 'Data Criação', value: 'data_criacao' },
-          { text: 'Data Serviço', value: 'data_servico' },
-          { text: 'Valor Total', value: 'valor_total' },
-          { text: 'Status', value: 'status' },
-          { text: 'Ações', value: 'actions', sortable: false }
-        ],
-        dialogExclusao: false,
-        ordemServicoParaExcluir: null,
-        snackbar: false,
-        snackbarText: '',
-        snackbarColor: '',
-        filtroStatus: null,
-        filtroCliente: null,
-        filtroTipoServico: null,
-        statusOptions: [
-          { text: 'Orçamento', value: 'orcamento' },
-          { text: 'Aprovado', value: 'aprovado' },
-          { text: 'Em Andamento', value: 'em_andamento' },
-          { text: 'Concluído', value: 'concluido' },
-          { text: 'Cancelado', value: 'cancelado' }
-        ],
-        statusMap: {
-          'orcamento': 'Orçamento',
-          'aprovado': 'Aprovado',
-          'em_andamento': 'Em Andamento',
-          'concluido': 'Concluído',
-          'cancelado': 'Cancelado'
-        },
-        statusColors: {
-          'orcamento': 'orange',
-          'aprovado': 'blue',
-          'em_andamento': 'blue',
-          'concluido': 'green',
-          'cancelado': 'red'
-        },
-        sortBy: [{ key: 'data_criacao', order: 'desc' }]
-      };
+    </v-dialog>
+
+     <!-- Snackbar para feedback -->
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+      {{ snackbar.text }}
+    </v-snackbar>
+
+  </div>
+</template>
+
+<script>
+// Importa SOMENTE mapActions se precisar deletar daqui
+import { mapActions } from 'vuex'; 
+
+export default {
+  name: 'OrdemServicoLista', // Nome do Componente Filho
+  props: { // Define as props que recebe do Pai
+    ordens: {
+      type: Array,
+      required: true,
+      default: () => [] 
     },
-    computed: {
-      ...mapState('ordemServico', ['ordensServico', 'loading', 'error']),
-      ...mapState('cliente', ['clientes']),
-      ...mapState('tipoServico', ['tiposServico'])
+    clientes: { // Recebe a lista completa de clientes
+      type: Array,
+      required: true,
+      default: () => []
     },
-    created() {
-      this.fetchOrdensServico();
-      this.fetchClientes();
-      this.fetchTiposServico();
-    },
-    methods: {
-      ...mapActions('ordemServico', ['fetchOrdensServico', 'deleteOrdemServico']),
-      ...mapActions('cliente', ['fetchClientes']),
-      ...mapActions('tipoServico', ['fetchTiposServico']),
-      
-      navegarParaNovo() {
-        this.$router.push('/ordens-servico/novo');
-      },
-      
-      visualizarItem(item) {
-        this.$router.push(`/ordens-servico/${item.id}/detalhes`);
-      },
-      
-      editarItem(item) {
-        this.$router.push(`/ordens-servico/${item.id}/editar`);
-      },
-      
-      excluirItem(item) {
-        this.ordemServicoParaExcluir = item;
-        this.dialogExclusao = true;
-      },
-      
-      fecharExclusao() {
-        this.dialogExclusao = false;
-        this.ordemServicoParaExcluir = null;
-      },
-      
-      async confirmarExclusao() {
-        try {
-          await this.deleteOrdemServico(this.ordemServicoParaExcluir.id);
-          this.snackbarText = 'Ordem de serviço excluída com sucesso!';
-          this.snackbarColor = 'success';
-        } catch (error) {
-          this.snackbarText = 'Erro ao excluir ordem de serviço';
-          this.snackbarColor = 'error';
-        }
-        
-        this.snackbar = true;
-        this.fecharExclusao();
-      },
-      
-      getStatusText(status) {
-        return this.statusMap[status] || status;
-      },
-      
-      getStatusColor(status) {
-        return this.statusColors[status] || 'grey';
-      },
-      
-      formatarData(dataString) {
-        if (!dataString) return '';
-        
-        const data = new Date(dataString);
-        return new Intl.DateTimeFormat('pt-BR').format(data);
-      },
-      
-      formatarMoeda(valor) {
-        return new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'BRL'
-        }).format(valor);
-      },
-      
-      getClienteNome(clienteId) {
-        const cliente = this.clientes.find(c => c.id === clienteId);
-        return cliente ? cliente.nome : 'Cliente não encontrado';
-      },
-      
-      aplicarFiltros() {
-        const filtros = {};
-        
-        if (this.filtroStatus) {
-          filtros.status = this.filtroStatus;
-        }
-        
-        if (this.filtroCliente) {
-          filtros.cliente = this.filtroCliente;
-        }
-        
-        if (this.filtroTipoServico) {
-          filtros.tipo_servico = this.filtroTipoServico;
-        }
-        
-        this.fetchOrdensServico(filtros);
-      }
+    loading: {
+      type: Boolean,
+      default: false
     }
-  };
-  </script>
+  },
+  data() {
+    return {
+      search: '', 
+      dialogExcluir: false,
+      itemParaExcluir: null,
+      loadingExclusao: false,
+      snackbar: {
+        show: false,
+        text: '',
+        color: 'success'
+      },
+      headers: [
+        { title: 'ID', key: 'id', align: 'start', sortable: true, width: '80px' },
+        { title: 'Cliente', key: 'cliente', sortable: true }, // Key é 'cliente' (o ID)
+        { title: 'Descrição', key: 'descricao', sortable: false, width: '30%' }, 
+        { title: 'Data', key: 'data_servico', sortable: true },
+        { title: 'Status', key: 'status', sortable: true },
+        { title: 'Valor Total', key: 'valor_total', sortable: true, align: 'end' },
+        { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '120px' },
+      ],
+    };
+  },
+  computed: {
+    // Mapa de clientes é útil aqui para exibir o nome baseado no ID recebido
+    mapaClientes() {
+      const mapa = {};
+      // Usa a prop 'clientes' recebida
+      this.clientes.forEach(cliente => {
+        mapa[cliente.id] = cliente.nome;
+      });
+      return mapa;
+    }
+    // SEM mapState aqui
+  },
+  methods: {
+    // mapActions apenas para ações que este componente dispara (ex: delete)
+    ...mapActions({
+        deleteOrdemServicoAction: 'ordemServico/deleteOrdemServico', 
+    }),
+
+    // Método para buscar o nome do cliente usando o mapa
+    getClienteNome(clienteId) {
+      return this.mapaClientes[clienteId] || `ID ${clienteId}`; // Fallback melhor
+    },
+
+    // Funções de formatação (iguais às que você já tinha)
+    formatStatus(status) {
+      if (!status) return '';
+      return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+    getStatusColor(status) {
+      switch (status) {
+        case 'pendente': return 'grey';
+        case 'orcamento': return 'orange';
+        case 'aprovado': return 'cyan';
+        case 'em andamento': case 'em_andamento': return 'blue';
+        case 'concluido': return 'success';
+        case 'cancelado': return 'error';
+        default: return 'default';
+      }
+    },
+     formatCurrency(value) {
+        if (value == null) return 'R$ 0,00';
+        return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+     },
+     formatDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString + 'T00:00:00'); 
+            if (isNaN(date)) return dateString; 
+            return date.toLocaleDateString('pt-BR');
+        } catch (e) {
+            return dateString; 
+        }
+     },
+
+    // Métodos de ação (iguais)
+    verDetalhes(item) {
+      this.$router.push({ name: 'ordem-servico-detalhe', params: { id: item.id } });
+    },
+    editarOrdem(item) {
+      this.$router.push({ name: 'ordem-servico-editar', params: { id: item.id } });
+    },
+    confirmarExclusao(item) {
+      this.itemParaExcluir = item;
+      this.dialogExcluir = true;
+    },
+    async excluirOrdemConfirmada() {
+      if (!this.itemParaExcluir) return;
+      this.loadingExclusao = true;
+      try {
+        await this.deleteOrdemServicoAction(this.itemParaExcluir.id);
+        this.dialogExcluir = false;
+        this.showSnackbar('Ordem de Serviço excluída com sucesso!', 'success');
+        // O PAI (OrdemServicoView) é quem deve re-buscar os dados se necessário,
+        // ou a mutação no store já removeu o item da lista que o pai está passando.
+      } catch (error) {
+        console.error("Erro ao excluir ordem:", error);
+        this.showSnackbar('Erro ao excluir Ordem de Serviço.', 'error');
+      } finally {
+        this.loadingExclusao = false;
+        this.itemParaExcluir = null; 
+      }
+    },
+    showSnackbar(text, color = 'info') {
+      this.snackbar.text = text;
+      this.snackbar.color = color;
+      this.snackbar.show = true;
+    }
+  }
+  // SEM created() hook aqui
+};
+</script>
+
+<style scoped>
+ .v-chip {
+   font-weight: bold;
+   font-size: 0.75rem;
+   height: 24px;
+ }
+ .v-icon {
+   cursor: pointer;
+ }
+</style>

@@ -30,7 +30,9 @@ const currentPageTitle = computed(() => {
     '/': 'Início',
     '/clientes': 'Clientes',
     '/tipos-servico': 'Tipos de Serviço',
-    '/ordens-servico': 'Ordens de Serviço'
+    '/ordens-servico': 'Ordens de Serviço',
+    '/relatorios/ordens':'Relatorio Ordens ',
+    '/relatorios/clientes':'Relatorio Clientes',
     // ... outros mapeamentos de rota para título
   }
   return titles[route.path] || 'Início'

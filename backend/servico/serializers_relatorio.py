@@ -17,13 +17,20 @@ class RelatorioOrdemServicoSerializer(serializers.ModelSerializer):
         return ", ".join([tipo.nome for tipo in obj.tipo_servico.all()])
 
 class RelatorioClienteSerializer(serializers.ModelSerializer):
-    total_ordens = serializers.IntegerField()
-    valor_total_servicos = serializers.DecimalField(max_digits=10, decimal_places=2)
-    ultima_ordem = serializers.DateTimeField()
-    
+    # Campos anotados - use os nomes definidos na view
+    total_ordens = serializers.IntegerField(source='total_ordens_periodo', read_only=True)
+    valor_total_servicos = serializers.DecimalField(source='valor_total_periodo', max_digits=10, decimal_places=2, read_only=True)
+    ultima_ordem = serializers.DateTimeField(source='ultima_ordem_periodo', read_only=True, format="%Y-%m-%dT%H:%M:%S") # Ou outro formato
+
     class Meta:
         model = Cliente
         fields = [
-            'id', 'nome', 'email', 'telefone', 'total_ordens',
-            'valor_total_servicos', 'ultima_ordem'
-        ] 
+            'id',
+            'nome',
+            'email',
+            'telefone',
+            'total_ordens', # Agora reflete o período
+            'valor_total_servicos', # Agora reflete o período
+            'ultima_ordem', # Agora reflete o período
+            # Inclua outros campos do Cliente se necessário
+        ]

@@ -67,7 +67,8 @@ export default {
         { title: 'Tipos de Serviço', icon: 'mdi-tools', to: '/tipos-servico' },
         { title: 'Ordens de Serviço', icon: 'mdi-clipboard-list', to: '/ordens-servico' },
         { title: 'Nova Ordem', icon: 'mdi-plus-circle', to: '/ordem-servico/nova' },
-        { title: 'Relatórios', icon: 'mdi-chart-bar', to: '/relatorios' }
+        { title: 'Relatórios Ordens', icon: 'mdi-chart-bar', to: '/relatorios/ordens' },
+        { title: 'Relatórios Clientes', icon: 'mdi-chart-bar', to: '/relatorios/clientes' },
       ]
     }
   },
