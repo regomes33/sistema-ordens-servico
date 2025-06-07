@@ -272,35 +272,42 @@ const snackbarText = ref('')
 const snackbarColor = ref('success')
 
 const statusMap = {
+  'orcamento': 'Orçamento',
+  'aprovado': 'Aprovado',
   'pendente': 'Pendente',
-  'em andamento': 'Em Andamento',
+  'em_andamento': 'Em Andamento',
   'concluido': 'Concluído',
-  'cancelado': 'Cancelado',
-  'aprovado':  'Aprovado',
+  'cancelado': 'Cancelado'
 }
 
-const loadOrdemServico = async () => {
-    const id = route.params.id
-    if (!id) return
+// ... existing code ...
 
-    loading.value = true
-    error.value = null
+const loadOrdemServico = async () => {
+    const id = route.params.id;
+    if (!id) return;
+
+    loading.value = true;
+    error.value = null;
 
     try {
-      const data = await store.dispatch('ordemServico/fetchOrdemServico', id)
+        console.log("Carregando ordem de serviço:", id);
+        const data = await store.dispatch('ordemServico/fetchOrdemServico', id);
+        console.log("Dados recebidos:", data);
 
-    
-
-      ordemServico.value = data
-      // Agora 'data.status' já está em lowercase
-      novoStatus.value = data.status ? data.status.toLowerCase():``
+        ordemServico.value = data;
+        novoStatus.value = data.status;
+        
+        console.log("Status atual:", ordemServico.value.status);
+        console.log("Novo status definido:", novoStatus.value);
     } catch (err) {
-      console.error('Erro ao carregar ordem de serviço:', err)
-      error.value = 'Erro ao carregar os dados da ordem de serviço'
+        console.error('Erro ao carregar ordem de serviço:', err);
+        error.value = 'Erro ao carregar os dados da ordem de serviço';
     } finally {
-      loading.value = false
+        loading.value = false;
     }
-  }
+}
+
+// ... existing code ...
 
 onMounted(() => {
   loadOrdemServico()
@@ -369,41 +376,39 @@ const onStatusSelectionChange = (value) => {
     // novoStatus.value já foi atualizado pelo v-model
   }
 
-const atualizarStatus = async () => {
-    // Adicione logs para depurar os valores ANTES da condição
+  const atualizarStatus = async () => {
     console.log("Tentando atualizar status...");
-    console.log(" - novoStatus:", novoStatus.value); // Deve ser lowercase (ex: "cancelado")
-    console.log(" - ordemServico.status:", ordemServico.value?.status); // Deve ser UPPERCASE (ex: "PENDENTE")
-    console.log(" - ordemServico.status.toLowerCase():", ordemServico.value?.status?.toLowerCase()); // Deve ser lowercase (ex: "pendente")
+    console.log(" - novoStatus:", novoStatus.value);
+    console.log(" - ordemServico.status:", ordemServico.value?.status);
 
-    // Modificação na condição if: Compare sempre em lowercase
-    if (!ordemServico.value || novoStatus.value === (ordemServico.value?.status?.toLowerCase() || '')) {
-        console.log("Status não mudou ou OS não carregada. Saindo.");
-        return; // Sai se não houver OS ou se o status selecionado for igual ao atual (comparando lowercase)
+    if (!ordemServico.value) {
+        console.log("Ordem de serviço não carregada");
+        return;
     }
 
-    console.log("Status mudou. Chamando action 'updateStatus' com:", { id: route.params.id, status: novoStatus.value });
-
-    atualizandoStatus.value = true
+    atualizandoStatus.value = true;
     try {
-      await store.dispatch('ordemServico/updateStatus', {
-        id: route.params.id,
-        status: novoStatus.value // Envia lowercase
-      })
+        await store.dispatch('ordemServico/updateStatus', {
+            id: route.params.id,
+            status: novoStatus.value
+        });
 
-      showSnackbar('Status atualizado com sucesso!', 'success')
-      await loadOrdemServico() // Recarrega os dados após sucesso
+        // Recarrega os dados após o sucesso
+        await loadOrdemServico();
+        
+        showSnackbar('Status atualizado com sucesso!', 'success');
     } catch (error) {
-      console.error("Erro capturado no componente ao atualizar status:", error); // Log de erro
-      showSnackbar('Erro ao atualizar status', 'error')
-      // Reverter pode ser útil aqui
-      if(ordemServico.value && ordemServico.value.status){
-           novoStatus.value = ordemServico.value.status.toLowerCase();
-      }
+        console.error("Erro ao atualizar status:", error);
+        showSnackbar('Erro ao atualizar status', 'error');
+        
+        // Reverte o status em caso de erro
+        if (ordemServico.value) {
+            novoStatus.value = ordemServico.value.status;
+        }
     } finally {
-      atualizandoStatus.value = false
+        atualizandoStatus.value = false;
     }
-  }
+}
 
 const showSnackbar = (text, color) => {
   snackbarText.value = text

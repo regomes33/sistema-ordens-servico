@@ -118,7 +118,7 @@ const actions = {
     commit('SET_CARREGANDO', true); // Ou um estado de loading específico para exportação
     commit('SET_ERRO', null);
     try {
-      const response = await api.get(`/relatorios/exportar/${tipo}`, {
+      const response = await api.get(`/relatorios/${tipo}/pdf/`, {
         params,
         responseType: 'blob', // Importante para download de arquivos
       });

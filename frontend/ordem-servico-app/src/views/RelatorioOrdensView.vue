@@ -228,12 +228,10 @@ export default {
       this.SET_ERRO(null);
     },
 
-    // Função debounced para gerar relatório
-    debouncedGerarRelatorio: debounce(function () {
-      this.filtros.pagina = 1; // Resetar página sempre que um filtro muda (via debounce)
-      this.gerarRelatorio();
-    }, 750), // Atraso de 750ms
+    
   },
+  // Função debounced para gerar relatório
+
   watch: {
     // Observa os filtros (exceto pagina e ordenacao que são tratados nos handlers)
     'filtros.data_inicio': 'debouncedGerarRelatorio',
@@ -245,13 +243,17 @@ export default {
     // e o debounce cuida das mudanças nos filtros.
   },
   created() {
+    this.debouncedGerarRelatorio = debounce(function() {
+      this.filtros.pagina = 1;
+      this.gerarRelatorio();
+    }, 750);
     this.loadInitialData();
   },
   beforeUnmount() {
-    // Limpa dados do relatório específico ao sair da página (opcional)
-    // this.limparDadosRelatorio();
-    // Cancela o debounce
-    this.debouncedGerarRelatorio.cancel();
+    // Verifique se a função existe antes de chamar cancel
+    if (this.debouncedGerarRelatorio?.cancel) {
+      this.debouncedGerarRelatorio.cancel();
+    }
   }
 };
 </script>

@@ -73,10 +73,13 @@ export default {
     ADD_ORDEM(state, ordem) {
       state.ordensServico.push(ordem);
     },
-    UPDATE_ORDEM(state, ordem) {
-      const index = state.ordensServico.findIndex(o => o.id === ordem.id);
-      if (index !== -1) {
-        state.ordensServico.splice(index, 1, ordem);
+    UPDATE_ORDEM_STATUS(state, { id, status }) {
+      const ordem = state.ordensServico.find(o => o.id === id);
+      if (ordem) {
+        ordem.status = status;
+      }
+      if (state.ordemAtual && state.ordemAtual.id === id) {
+        state.ordemAtual.status = status;
       }
     },
     DELETE_ORDEM_SERVICO(state, id) {
@@ -95,7 +98,12 @@ export default {
     UPDATE_ORDEM_SERVICO(state, ordem) {
       const index = state.ordensServico.findIndex(o => o.id === ordem.id);
       if (index !== -1) {
+        // Substitui a ordem antiga pela nova mantendo a reatividade
         state.ordensServico.splice(index, 1, ordem);
+      }
+      // Se esta é a ordem atual, atualiza também
+      if (state.ordemAtual && state.ordemAtual.id === ordem.id) {
+        state.ordemAtual = ordem;
       }
     },
     SET_ORDEM_ATUAL(state, ordem) {
@@ -146,51 +154,56 @@ export default {
       }
     },
     
+    // ... existing code ...
+
     async updateOrdemServico({ commit }, { id, data }) {
       commit('SET_LOADING', true);
       try {
-        console.log('Verificando ordemServicoService ANTES da chamada:', ordemServicoService);
-        console.log('Existe a função atualizar?', typeof ordemServicoService.atualizar);
-        // Mude de 'update' para 'atualizar' para corresponder ao serviço
-        const response = await ordemServicoService.atualizar(id, data); // <--- CORREÇÃO AQUI
-    
-        // Você tem uma mutation 'UPDATE_ORDEM_SERVICO_IN_LIST' aqui?
-        // Se a mutation correta for 'UPDATE_ORDEM_SERVICO', use-a:
-        commit('UPDATE_ORDEM_SERVICO', response.data); // Verifique o nome da mutation
-    
-        commit('SET_LOADING', false);
+        console.log('Dados para atualização:', { id, data });
+        // Using the service method instead of direct axios call
+        const response = await ordemServicoService.update(id, data);
+        
+        commit('UPDATE_ORDEM_SERVICO', response.data);
+        
+        if (data.status) {
+          commit('UPDATE_ORDEM_STATUS', { 
+            id: id, 
+            status: data.status 
+          });
+        }
+        
         return response.data;
       } catch (error) {
-        commit('SET_LOADING', false);
-        commit('SET_ERROR', error); // Idealmente, pegue error.response.data ou error.message
         console.error('Erro ao atualizar ordem de serviço:', error);
+        commit('SET_ERROR', error.response?.data?.message || 'Erro ao atualizar ordem de serviço');
         throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
 
+// ... existing code ...
+
     async updateStatus({ commit, dispatch }, { id, status }) {
-      commit('SET_LOADING', true); // Opcional: indicar loading
+      commit('SET_LOADING', true);
       try {
-        // Chama a função correta do service com PATCH
+        console.log('Atualizando status:', { id, status });
         const response = await ordemServicoService.updateStatus(id, status);
-
-        // Atualiza o estado local.
-        // Opção A: Se a API PATCH retorna o objeto completo atualizado:
-        commit('UPDATE_ORDEM_SERVICO', response.data);
-
-        // Opção B: Se a API PATCH retorna só sucesso (200 OK) ou dados parciais:
-        // Você pode buscar o item atualizado OU comitar uma mutation mais específica
-        // Ex: commit('UPDATE_ORDEM_STATUS_MUTATION', { id, status }); // Precisaria criar essa mutation
-        // Ou recarregar a lista/item (menos eficiente se for só status)
-        // dispatch('fetchOrdemServico', id); // Recarrega o item atual
-
-        return response.data; // Retorna os dados atualizados (se houver)
+        
+        // Atualiza tanto a ordem na lista quanto a ordem atual
+        commit('UPDATE_ORDEM_STATUS', { id, status });
+        
+        // Recarrega os dados para garantir sincronização
+        await dispatch('fetchOrdemServico', id);
+        
+        console.log('Status atualizado com sucesso:', response.data);
+        return response.data;
       } catch (error) {
         console.error(`Erro ao atualizar status da OS ${id}:`, error);
-        commit('SET_ERROR', error.response?.data || 'Erro ao atualizar status');
-        throw error; // Propaga o erro
+        commit('SET_ERROR', error.response?.data?.message || 'Erro ao atualizar status');
+        throw error;
       } finally {
-        commit('SET_LOADING', false); // Garante que loading termine
+        commit('SET_LOADING', false);
       }
     },
 
