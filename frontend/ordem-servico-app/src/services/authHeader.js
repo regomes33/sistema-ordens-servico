@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 /**
  * Função auxiliar para obter o cabeçalho de autenticação
  * Retorna o token JWT armazenado no localStorage para autenticação
@@ -7,7 +9,11 @@ export default function authHeader() {
     const userStr = localStorage.getItem('user');
     
     if (!userStr) {
-      console.warn('authHeader: Nenhum dado de usuário encontrado no localStorage');
+      // Substituir todos os console.warn por:
+      logger.warn('mensagem')
+      
+      // Substituir todos os console.error por:
+      logger.error('mensagem', error)
       return {};
     }
     
@@ -34,4 +40,4 @@ export default function authHeader() {
     console.error('authHeader: Erro ao processar cabeçalho de autenticação', error);
     return {};
   }
-} 
+}

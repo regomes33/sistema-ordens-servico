@@ -77,7 +77,7 @@ import { computed, ref, onMounted } from 'vue'
 import { mapState, mapActions } from 'vuex'
 import { eventBus } from '@/plugins/eventBus'
 import NavigationDrawer from '@/components/Layout/NavigationDrawer.vue'
-import AppHeader from '@/components/Layout/AppHeader.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import { useRouter } from 'vue-router'
 
 interface MenuItem {

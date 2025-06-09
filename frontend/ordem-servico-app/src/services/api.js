@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '@/utils/logger';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api'
@@ -18,14 +19,11 @@ api.interceptors.request.use(config => {
 // Interceptor para tratar erros de autenticação
 api.interceptors.response.use(
   response => {
-      // >>>>> VOCÊ ESTÁ FAZENDO ALGO COM 'response' AQUI? <<<<<
-      // Por exemplo, você está retornando 'response.data.resumo' em vez de 'response'?
-      // Ou modificando response.data?
-      console.log("AXIOS INTERCEPTOR RESPONSE - Success:", response); // Adicione log aqui
-      return response; // << Deve retornar a response completa (ou response.data se for padrão)
+      logger.info("AXIOS INTERCEPTOR RESPONSE - Success:", response);
+      return response;
   },
   error => {
-      console.error("AXIOS INTERCEPTOR RESPONSE - Error:", error); // Adicione log aqui
+      logger.info("AXIOS INTERCEPTOR RESPONSE - Error:", error);
       // ... tratamento de erro ...
       return Promise.reject(error);
   }

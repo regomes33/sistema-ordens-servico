@@ -280,8 +280,6 @@ const statusMap = {
   'cancelado': 'Cancelado'
 }
 
-// ... existing code ...
-
 const loadOrdemServico = async () => {
     const id = route.params.id;
     if (!id) return;
@@ -306,8 +304,6 @@ const loadOrdemServico = async () => {
         loading.value = false;
     }
 }
-
-// ... existing code ...
 
 onMounted(() => {
   loadOrdemServico()
@@ -398,7 +394,9 @@ const onStatusSelectionChange = (value) => {
         
         showSnackbar('Status atualizado com sucesso!', 'success');
     } catch (error) {
-        console.error("Erro ao atualizar status:", error);
+        // Remover todos os console.log de debug
+        // Substituir console.error por:
+        logger.error('Erro ao atualizar status', error)
         showSnackbar('Erro ao atualizar status', 'error');
         
         // Reverte o status em caso de erro

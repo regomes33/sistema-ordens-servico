@@ -154,8 +154,6 @@ export default {
       }
     },
     
-    // ... existing code ...
-
     async updateOrdemServico({ commit }, { id, data }) {
       commit('SET_LOADING', true);
       try {
@@ -182,8 +180,6 @@ export default {
       }
     },
 
-// ... existing code ...
-
     async updateStatus({ commit, dispatch }, { id, status }) {
       commit('SET_LOADING', true);
       try {
@@ -207,9 +203,6 @@ export default {
       }
     },
 
-    // ... (resto das actions) ...
-
-    
     async deleteOrdemServico({ commit }, id) {
       commit('SET_LOADING', true);
       try {
@@ -276,7 +269,9 @@ export default {
         commit('SET_ORDENS', response.data)
         return response.data
       } catch (error) {
-        console.error('Erro ao buscar ordens:', error)
+        // Remover todos os console.log de debug
+        // Substituir console.error por:
+        logger.error('mensagem de erro específica', error)
         commit('SET_ORDENS', [])
         throw error
       }
