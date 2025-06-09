@@ -7,11 +7,12 @@
     />
     
     <!-- Menu lateral - só aparece se estiver autenticado -->
+    <!-- OBS: O componente NavigationDrawer que você importou não está sendo usado. Removi para limpar o código. -->
     <v-navigation-drawer
-      v-if="isAuthenticated"
-      v-model="drawer"
-      permanent
-    >
+  v-if="isAuthenticated"
+  v-model="drawer"
+  app
+>
       <v-list-item
         title="Sistema de OS"
         class="text-h6 py-4"
@@ -57,7 +58,7 @@
       :timeout="snackbar.timeout"
     >
       {{ snackbar.text }}
-      <template v-slot:actions>
+      <template #actions>
         <v-btn
           color="white"
           variant="text"
@@ -71,34 +72,42 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { useStore } from 'vuex'
-import { computed, ref, onMounted } from 'vue'
-import { mapState, mapActions } from 'vuex'
-import { eventBus } from '@/plugins/eventBus'
-import NavigationDrawer from '@/components/Layout/NavigationDrawer.vue'
-import AppHeader from '@/components/AppHeader.vue'
-import { useRouter } from 'vue-router'
+import { defineComponent, computed, ref, onMounted, onUnmounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import { useTheme } from 'vuetify'; // Hook correto para manipular temas no Vuetify 3
+import AppHeader from '@/components/Layout/AppHeader.vue';
+import { eventBus } from '@/plugins/eventBus';
 
+// Interfaces para tipagem
 interface MenuItem {
-  title: string
-  icon: string
-  to: string
-  value: string
+  title: string;
+  icon: string;
+  to: string;
+  value: string;
+}
+
+interface SnackbarState {
+  show: boolean;
+  text: string;
+  color: string;
+  timeout: number;
 }
 
 export default defineComponent({
   name: 'App',
   
   components: {
-    NavigationDrawer,
-    AppHeader
+    AppHeader,
+    // Removi NavigationDrawer dos componentes pois não estava sendo usado no template.
+    // O v-navigation-drawer do template é o componente nativo do Vuetify.
   },
   
   setup() {
-    const store = useStore()
-    const router = useRouter()
-    const drawer = ref(true)
+    const store = useStore();
+    const router = useRouter();
+    const theme = useTheme(); // Hook para gerenciar o tema
+    const drawer = ref(true);
     
     const menuItems: MenuItem[] = [
       { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/', value: 'dashboard' },
@@ -108,51 +117,68 @@ export default defineComponent({
       { title: 'Nova Ordem', icon: 'mdi-plus-circle', to: '/ordem-servico/nova', value: 'nova-ordem' },
       { title: 'Relatórios Ordens', icon: 'mdi-chart-bar', to: '/relatorios/ordens', value: 'relatorios/ordens' },
       { title: 'Relatórios Clientes', icon: 'mdi-chart-bar', to: '/relatorios/clientes', value: 'relatorios/clientes' },
-    ]
+    ];
 
-    const isAuthenticated = computed(() => {
-      return store.getters['auth/isAuthenticated']
-    })
+    const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
     
     const handleLogout = async () => {
       try {
-        await store.dispatch('auth/logout')
-        router.push('/login')
+        await store.dispatch('auth/logout');
+        router.push('/login');
       } catch (error) {
-        console.error('Erro ao fazer logout:', error)
+        console.error('Erro ao fazer logout:', error);
       }
-    }
+    };
 
-    const snackbar = ref({
+    const snackbar = ref<SnackbarState>({
       show: false,
       text: '',
       color: 'success',
-      timeout: 3000
-    })
+      timeout: 3000,
+    });
 
-    const showMessage = (text, color = 'success', timeout = 3000) => {
+    // Função showMessage agora com tipos explícitos para seus parâmetros
+    const showMessage = (payload: { text: string; color?: string; timeout?: number }) => {
       snackbar.value = {
         show: true,
-        text,
-        color,
-        timeout
-      }
-    }
+        text: payload.text,
+        color: payload.color || 'success', // Valor padrão se não for fornecido
+        timeout: payload.timeout || 3000, // Valor padrão se não for fornecido
+      };
+    };
 
     const irParaPerfil = () => {
       // Implemente a lógica para ir para o perfil do usuário
-    }
+      console.log('Navegando para o perfil...');
+    };
 
     const toggleTheme = () => {
-      // Implemente a lógica para alternar o tema
-    }
+      // Lógica para alternar o tema usando o hook do Vuetify
+      theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark';
+      localStorage.setItem('darkTheme', theme.global.name.value);
+    };
 
+    // Hooks de ciclo de vida dentro do setup()
     onMounted(() => {
       // Verifica autenticação ao iniciar a aplicação
       store.dispatch('auth/checkAuth').catch(error => {
-        console.error('Erro ao verificar autenticação:', error)
-      })
-    })
+        console.error('Erro ao verificar autenticação:', error);
+      });
+
+      // Listener do eventBus. 'showMessage' é a função que será chamada.
+      eventBus.on('show-message', showMessage);
+
+      // Aplicar tema escuro se estiver salvo
+      const savedTheme = localStorage.getItem('darkTheme');
+      if (savedTheme) {
+        theme.global.name.value = savedTheme;
+      }
+    });
+
+    onUnmounted(() => {
+      // Limpar o listener quando o componente for desmontado para evitar memory leaks
+      eventBus.off('show-message', showMessage);
+    });
 
     return {
       drawer,
@@ -160,34 +186,20 @@ export default defineComponent({
       isAuthenticated,
       handleLogout,
       snackbar,
-      showMessage,
+      // Não precisa mais retornar showMessage, irParaPerfil ou toggleTheme se não forem usados no template
+      // Mas vamos manter caso precise deles lá.
+      showMessage, 
       irParaPerfil,
       toggleTheme
-    }
+    };
   },
-
-  mounted() {
-    // Usar mounted em vez de created para garantir que o componente está montado
-    eventBus.on('show-message', (event) => {
-      const { text, color, timeout } = event
-      this.showMessage(text, color, timeout)
-    })
-
-    // Aplicar tema escuro se estiver salvo
-    const darkTheme = localStorage.getItem('darkTheme')
-    if (darkTheme !== null) {
-      this.$vuetify.theme.dark = darkTheme === 'true'
-    }
-  },
-
-  unmounted() {
-    // Limpar o listener quando o componente for desmontado
-    eventBus.off('show-message')
-  }
-})
+  
+  // NENHUM CÓDIGO AQUI. Options API (mounted, unmounted, data, methods) não deve ser misturada com setup().
+});
 </script>
 
 <style>
+/* Seu CSS continua o mesmo */
 .v-application {
   font-family: 'Roboto', sans-serif;
 }
