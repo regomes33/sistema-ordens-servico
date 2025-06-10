@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "target": "ESNext",
+    "module": "ESNext",
     "strict": true,
     "jsx": "preserve",
     "moduleResolution": "node",
@@ -12,15 +12,19 @@
     "useDefineForClassFields": true,
     "sourceMap": true,
     "baseUrl": ".",
+    // A CHAVE "types" FOI REMOVIDA DAQUI.
+    // O TypeScript agora irá descobrir automaticamente os tipos
+    // de todas as suas dependências (Vuetify, Vuelidate, Vue Router, Vuex, etc.).
     "paths": {
       "@/*": ["src/*"]
     },
-    "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "ScriptHost"]
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "src/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"
