@@ -1,4 +1,6 @@
 import { createApp } from 'vue'
+import { type RouteLocationNormalized } from 'vue-router'
+
 import './style.css'
 import App from './App.vue'
 import router from './router'
@@ -8,15 +10,13 @@ import './plugins/axios'
 
 const app = createApp(App)
 
-// Registrar plugins
 app.use(router)
 app.use(store)
 app.use(vuetify)
 
-// Filtro global para status
 app.config.globalProperties.$filters = {
-  status: (value) => {
-    const statusMap = {
+  status: (value: string) => {
+    const statusMap: { [key: string]: string } = {
       'orcamento': 'Orçamento',
       'aprovado': 'Aprovado',
       'em_andamento': 'Em Andamento',
@@ -27,10 +27,10 @@ app.config.globalProperties.$filters = {
   }
 }
 
-// Configurar o título da página
-router.afterEach((to) => {
-  document.title = to.meta.title 
-    ? `${to.meta.title} - Gerenciador de Ordens de Serviço` 
+router.afterEach((to: RouteLocationNormalized) => {
+  const pageTitle = to.meta.title as string;
+  document.title = pageTitle
+    ? `${pageTitle} - Gerenciador de Ordens de Serviço`
     : 'Gerenciador de Ordens de Serviço'
 })
 

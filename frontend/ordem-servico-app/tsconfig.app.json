@@ -8,7 +8,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    // CORREÇÃO 1: allowJs DEVE ESTAR AQUI DENTRO!
+    "allowJs": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+
+  // CORREÇÃO 2: Adicione a busca por arquivos .js aqui
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.js"]
 }

@@ -1,32 +1,25 @@
+// ARQUIVO: tsconfig.json (VERSÃO CORRETA E COMPLETA)
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "strict": true,
-    "jsx": "preserve",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "useDefineForClassFields": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    // A CHAVE "types" FOI REMOVIDA DAQUI.
-    // O TypeScript agora irá descobrir automaticamente os tipos
-    // de todas as suas dependências (Vuetify, Vuelidate, Vue Router, Vuex, etc.).
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "ScriptHost"]
-  },
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": [
     "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/**/*.d.ts"
+    // A LINHA MAIS IMPORTANTE PARA RESOLVER SEU PROBLEMA:
+    "src/**/*.js"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    // A SEGUNDA LINHA MAIS IMPORTANTE:
+    "allowJs": true,
+    "strict": true
+  }
 }
