@@ -4,4 +4,13 @@ export interface Cliente {
     nome_responsavel: string;
     email: string;
     telefone: string;
+    cpf: string;
+    endereco: string;
+    cep: string;
+    cidade: string;
+
+
+
+
+
   }

@@ -86,7 +86,12 @@ const editedItem = ref<Cliente>({
   nome: '',
   nome_responsavel: '',
   email: '',
-  telefone: ''
+  cpf: '',
+  telefone: '',
+  endereco: '',
+  cep: '',
+  cidade: '',
+
 })
 
 const defaultItem: Cliente = {
@@ -94,7 +99,11 @@ const defaultItem: Cliente = {
   nome: '',
   nome_responsavel: '',
   email: '',
-  telefone: ''
+  telefone: '',
+  cpf: '',
+  endereco: '',
+  cep: '',
+  cidade: '',
 }
 
 const clientes = computed<Cliente[]>(() => store.state.cliente.clientes)
