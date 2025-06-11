@@ -1,6 +1,6 @@
 import api from '@/services/api'
 
-const API_URL = 'http://localhost:8000/api/';
+const API_URL = '/api/';
 
 // Carregar usuário do localStorage
 const user = JSON.parse(localStorage.getItem('user'));
