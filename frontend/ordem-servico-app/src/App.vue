@@ -161,9 +161,9 @@ export default defineComponent({
     // Hooks de ciclo de vida dentro do setup()
     onMounted(() => {
       // Verifica autenticação ao iniciar a aplicação
-      store.dispatch('auth/checkAuth').catch(error => {
-        console.error('Erro ao verificar autenticação:', error);
-      });
+      store.dispatch('auth/checkAuth').catch((error: unknown) => { // <-- Adicionado o tipo 'unknown'
+  console.error('Erro ao verificar autenticação:', error);
+});
 
       // Listener do eventBus. 'showMessage' é a função que será chamada.
       eventBus.on('show-message', showMessage);

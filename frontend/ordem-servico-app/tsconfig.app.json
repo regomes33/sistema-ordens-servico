@@ -11,7 +11,9 @@
     "noUncheckedSideEffectImports": true,
 
     // CORREÇÃO 1: allowJs DEVE ESTAR AQUI DENTRO!
-    "allowJs": true
+    "allowJs": true,
+    "moduleResolution": "bundler", // <-- A mudança mais crítica para resolver o erro do Vuex
+    
   },
 
   // CORREÇÃO 2: Adicione a busca por arquivos .js aqui

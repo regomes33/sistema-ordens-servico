@@ -1,4 +1,5 @@
-import mitt, { Emitter } from 'mitt';
+import mitt from 'mitt';
+import type { Emitter } from 'mitt'; // <-- 'Emitter' importado como um tipo
 
 // 1. Defina seus eventos e os tipos de dados que eles carregam
 type Events = {
