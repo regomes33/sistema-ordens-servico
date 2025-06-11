@@ -11,7 +11,7 @@ chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 CONFIG_STRING = """
 DEBUG=False
 SECRET_KEY=%s
-ALLOWED_HOSTS=127.0.0.1, .localhost,'31.97.160.206'
+ALLOWED_HOSTS=127.0.0.1, .localhost,31.97.160.206
 #DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/NAME
 #DEFAULT_FROM_EMAIL=
 #EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
