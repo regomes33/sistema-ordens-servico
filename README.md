@@ -66,7 +66,7 @@ npm run build
 
 1. Configure o arquivo `.env` na raiz do projeto frontend:
 ```env
-VUE_APP_API_URL=http://localhost:8000/api
+VUE_APP_API_URL=/api
 ```
 
 2. Configure as variáveis de ambiente do Django em `backend/.env`:

@@ -64,8 +64,8 @@ ROOT_URLCONF = 'ordemdeservico.urls'
 
 # Configurações de CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
+    "http:http://31.97.160.206:80",
+    "http:http://31.97.160.206/:80",
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
@@ -97,8 +97,8 @@ CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
 # Configurações de CSRF
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
+    "http://31.97.160.206:80",
+    "http://31.97.160.206:80",
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'
