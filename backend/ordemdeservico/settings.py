@@ -64,8 +64,8 @@ ROOT_URLCONF = 'ordemdeservico.urls'
 
 # Configurações de CORS
 CORS_ALLOWED_ORIGINS = [
-    "http:http://31.97.160.206:80",
-    "http:http://31.97.160.206/:80",
+   "http://31.97.160.206",
+   "http://localhost:3000"
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
