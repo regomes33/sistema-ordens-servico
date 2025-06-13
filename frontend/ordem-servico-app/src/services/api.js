@@ -2,7 +2,7 @@ import axios from 'axios';
 import { logger } from '@/utils/logger';
 
 const api = axios.create({
-  baseURL: '/api'
+  baseURL: '/api/'
 });
 
 // Interceptor para adicionar o token em todas as requisições
