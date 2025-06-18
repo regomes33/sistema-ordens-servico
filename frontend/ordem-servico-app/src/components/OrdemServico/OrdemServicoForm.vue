@@ -213,7 +213,7 @@ export default {
         valor_mao_obra: 0,
         valor_material: 0,
         endereco: '',
-        status: 'pendente',
+        status: 'PENDENTE',
         imagens: []
       },
       imagens: [],
