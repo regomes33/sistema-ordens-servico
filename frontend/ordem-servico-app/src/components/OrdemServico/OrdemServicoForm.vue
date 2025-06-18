@@ -398,30 +398,23 @@ export default {
     },
 
     prepareFormData() {
-      const formData = new FormData();
+  // Cria um objeto JavaScript simples, em vez de FormData.
+  const data = {
+    cliente: this.ordemServico.cliente,
+    tipo_servico: this.ordemServico.tipo_servico, // Envia o array de IDs diretamente
+    data_servico: this.ordemServico.data_servico,
+    tempo_garantia: this.ordemServico.tempo_garantia,
+    descricao: this.ordemServico.descricao,
+    valor_mao_obra: this.ordemServico.valor_mao_obra,
+    valor_material: this.ordemServico.valor_material,
+    status: this.ordemServico.status, // Garanta que o valor aqui seja o esperado pelo backend (ex: 'PENDENTE')
+    endereco: this.ordemServico.endereco
+  };
 
-      // Campos obrigatórios do modelo
-      formData.append('cliente', this.ordemServico.cliente);
-
-      // Tipo Serviço - ManyToMany field
-      this.ordemServico.tipo_servico.forEach(tipo => {
-        formData.append('tipo_servico', tipo);
-      });
-
-      formData.append('data_servico', this.ordemServico.data_servico);
-      formData.append('tempo_garantia', this.ordemServico.tempo_garantia);
-      formData.append('descricao', this.ordemServico.descricao);
-      formData.append('valor_mao_obra', this.ordemServico.valor_mao_obra);
-      formData.append('valor_material', this.ordemServico.valor_material);
-
-      // Adicionar o status diretamente, sem mapeamento
-      formData.append('status', this.ordemServico.status);
-
-      formData.append('endereco', this.ordemServico.endereco);
-
-      console.log('Dados a serem enviados:', Object.fromEntries(formData.entries()));
-      return formData;
-    },
+  // Este log agora mostrará exatamente o que será enviado como JSON.
+  console.log('Dados a serem enviados como JSON:', data);
+  return data;
+},
 
     handleImagensChange(imageData) {
       this.ordemServico.imagens = imageData;

@@ -1,0 +1,84 @@
+# =================================================================
+# Arquivos de Ambiente e Configurações Sensíveis
+# NUNCA ENVIAR PARA O GIT. Devem ser criados manualmente em cada ambiente.
+# =================================================================
+.env
+.env.*
+!.env.example
+*.local
+
+# =================================================================
+# Dependências e Pacotes
+# Devem ser reinstalados em cada ambiente.
+# =================================================================
+# Python (Django)
+/backend/venv/
+/backend/.venv/
+
+# JavaScript (Vue)
+/frontend/ordem-servico-app/node_modules/
+node_modules/ # Regra genérica para garantir
+
+# =================================================================
+# Arquivos de Build e Compilação
+# São gerados em cada ambiente.
+# =================================================================
+# Python (Django)
+__pycache__/
+*.py[cod]
+
+# JavaScript/TypeScript (Vue)
+/frontend/ordem-servico-app/dist/
+/frontend/ordem-servico-app/dist-ssr/
+/frontend/ordem-servico-app/build/
+dist/
+dist-ssr/
+build/
+*.js.map
+*.tsbuildinfo
+
+# =================================================================
+# Banco de Dados e Arquivos de Mídia/Estáticos
+# Devem ser gerenciados separadamente em cada ambiente.
+# =================================================================
+# Banco de dados SQLite
+db.sqlite3
+*.sqlite3
+
+# Mídia (uploads de usuários)
+/backend/media/
+
+# Estáticos (gerados pelo collectstatic do Django)
+/backend/staticfiles/
+
+# =================================================================
+# Logs
+# =================================================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =================================================================
+# Arquivos de IDE e Sistema Operacional
+# =================================================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, WebStorm)
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -64,8 +64,9 @@ ROOT_URLCONF = 'ordemdeservico.urls'
 
 # Configurações de CORS
 CORS_ALLOWED_ORIGINS = [
-   "http://31.97.160.206",
-   "http://localhost:3000"
+    "http://localhost:5173",  # URL do seu frontend em desenvolvimento
+    "http://localhost:3000",  # Outra URL comum de dev
+    "http://31.97.160.206",   # IP do seu servidor de produção
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
@@ -97,13 +98,13 @@ CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
 # Configurações de CSRF
 CSRF_TRUSTED_ORIGINS = [
-    "http://31.97.160.206:80",
-    "http://31.97.160.206:80",
+    "http://31.97.160.206",
 ]
 
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True # Também para o cookie de sessão
+
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {
